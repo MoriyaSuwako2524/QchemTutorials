@@ -21,7 +21,7 @@ Q-Chem supports OpenMP threading, MPI for distributed-memory runs. Usually one s
 
 ![parallel1](D:\calculate\github\QchemTutorials\notebooks\03-qchem\pngs\parallel1.png)
 
-Figure 1. Parallel benchmarking of Q-Chem on the test molecule. Three tasks(single-point (SP), force, and vibrational frequency) were run with 2, 4, 8, 16, and 32 CPU cores on PETE. Speedup is computed from wall time relative to the 2-core run.
+Figure 1. Parallel benchmarking of Q-Chem on the test molecule. Three tasks(single-point (SP), force, and vibrational frequency) were run with 2, 4, 8, 16, and 32 CPU cores on PETE. Speedup is computed from wall time relative to the 2-core run. According to the Figure, adding more cores won't give proportional speeds.
 
 ## 2. Install & Compile Q-chem
 
@@ -89,11 +89,13 @@ The download may take some time. After it finishes, you should see a new folder 
 #SBATCH --time=1-00:00:00
 #SBATCH --job-name=comp
 
+
 mkdir logs
+
 module purge
-module load gcc/11.2.0
 module load cmake3/3.24.3
 module load impi/2021.2.0
+module load intel/2021.2.0
 
 export QC=/scratch/$USER/software/qchem
 source $QC/bin/qchem.setup.sh
@@ -101,7 +103,9 @@ export QCSCRATCH=/scratch/$USER
 
 
 cd $QC
-./configure intel openmpi mkl release
+./configure intel release
+
+make -j 16 qcprog.exe > mall.log
 ```
 
 Source the script to start configuration:
