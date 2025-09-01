@@ -17,25 +17,24 @@ Q-Chem is a general-purpose electronic-structure package offering broad coverage
 7. **PES exploration & optimization:** constrained and unconstrained optimizations (minima/TS), IRC paths, and relaxed scans. 
 
 **Performance & parallelism**
-Q-Chem supports **OpenMP** threading, **MPI** for distributed-memory runs. Usually one should run with $2^n$ numbers of cores. I ran some benchmark of the parallel jobs:
+Q-Chem supports OpenMP threading, MPI for distributed-memory runs. Usually one should run with $2^n$ numbers of cores. I ran some benchmark of the parallel jobs:
 
+![parallel1](D:\calculate\github\QchemTutorials\notebooks\03-qchem\pngs\parallel1.png)
 
-
-
+Figure 1. Parallel benchmarking of Q-Chem on the test molecule. Three tasks(single-point (SP), force, and vibrational frequency) were run with 2, 4, 8, 16, and 32 CPU cores on PETE. Speedup is computed from wall time relative to the 2-core run. According to the Figure, adding more cores won't give proportional speeds.
 
 ## 2. Install & Compile Q-chem
 
 Requirements:
 
-- A Linux Computer
+- An access to a Linux Computer
 - Q-chem package
-- Basic knowledge of the Linux shell
+- Basic knowledge of the Linux shell & Slurm
 
 Optional:
 
 - Pete supercomputer (used as an example in this tutorial)
 - Q-chem developer access
-- 
 
 If you plan to develop new features in Q-Chem (e.g., new functions, special requirements), or if you simply want your own installation, you’ll need to download and compile Q-Chem in your home environment.
 
@@ -90,11 +89,13 @@ The download may take some time. After it finishes, you should see a new folder 
 #SBATCH --time=1-00:00:00
 #SBATCH --job-name=comp
 
+
 mkdir logs
+
 module purge
-module load gcc/11.2.0
 module load cmake3/3.24.3
 module load impi/2021.2.0
+module load intel/2021.2.0
 
 export QC=/scratch/$USER/software/qchem
 source $QC/bin/qchem.setup.sh
@@ -102,7 +103,9 @@ export QCSCRATCH=/scratch/$USER
 
 
 cd $QC
-./configure intel openmpi mkl release
+./configure intel release
+
+make -j 16 qcprog.exe > mall.log
 ```
 
 Source the script to start configuration:
@@ -143,7 +146,7 @@ Use the following command to submit the compile command.
 sbatch compiler.sh
 ```
 
-The first compilation can take up to **4 hours**. 
+The first compilation can usually take more than **4 hours**. 
 
 To check whether the job is still running or has finished (successfully or with errors), use:
 
@@ -259,6 +262,93 @@ Here’s what each line means:
     - `MP2`, `CCSD`, `ADC`, etc.
 - **`SOLVENT_METHOD = PCM`**
   - Tells Q-Chem to include solvent effects using the **Polarizable Continuum Model (PCM)**.
-  - Requires an additional `$solvent` block.
+  - Requires an additional `$solvent` block. It specific which solvent you are using by their dielectric value.
 
 The `$rem` section is the heart of the input file, it controls what calculation is being done and how. A significant thing is that, whenever you copy an input file from others, and you don't know exactly each line means. 
+
+
+
+## 4. Run a Q-Chem job
+
+Once you have Q-Chem installed, run a few small jobs to test it. (You can also borrow a working Q-Chem install on a shared server to practice job submission.)
+
+We usually keep each project in its own folder—don’t mix everything together (unless you’re a T-800 ).
+
+```bash
+cd /scratch/$USER
+mkdir -p qchem_calculation/tutorial_practices
+cd qchem_calculation/tutorial_practices
+```
+
+Tip: press `Tab` for filename autocompletion.
+
+You can either copy the example input file in section 3, or create your own one. I give the example input name as `H2O2.inp`. Just use the following command
+
+```bash
+vi H2O2.inp
+```
+
+In `vi`: press `a` to enter insert mode, paste example input from Section 3, press `Esc`, then type `:wq` to save and quit.
+
+usually we use bash to submit jobs. Still create a file named `sub.sh`. You can just use the following bash first:
+
+```bash
+#!/bin/bash
+#SBATCH -J qchem_test                 # Job name
+#SBATCH -p express                    # Partition/queue
+#SBATCH --time=01:00:00               # Wall time limit
+#SBATCH --nodes=1
+#SBATCH --ntasks=1                    # 1 MPI task (Q-Chem will use threads)
+#SBATCH --cpus-per-task=16            # Threads for OpenMP (-nt)
+#SBATCH -o ./logs/OUTPUT_%J.log
+#SBATCH -e ./logs/ERRORS_%J.log
+
+
+# --- Q-Chem environment ---
+export QC=/scratch/$USER/software/qchem          # Q-Chem install root
+# export QCAUX=/path/to/qcaux                    # Optional: EFP bases, etc.
+source "$QC/bin/qchem.setup.sh"                  # Or qchem.setup / qchem_setup
+# Use node-local scratch if available; else fall back to a per-user scratch
+export QCSCRATCH="${SLURM_TMPDIR:-/scratch/$USER/qcscratch/$SLURM_JOB_ID}"
+mkdir -p "$QCSCRATCH"
+
+# Compiler/runtime modules (adjust to your cluster)
+module purge
+module load intel/2021.2.0
+
+# Make OpenMP threads match Slurm allocation
+export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK}"
+
+
+infile="$1"
+# Output name: replace .inp with .out (or just append .out if no .inp)
+outfile="${infile%.inp}.out"
+
+echo "Running Q-Chem on $infile with ${OMP_NUM_THREADS} threads…"
+qchem -nt "${OMP_NUM_THREADS}" "$infile" "$outfile"
+
+echo "Done. Output: $outfile"
+
+```
+
+Why these settings?
+
+- `--ntasks=1` + `--cpus-per-task=16` is the correct layout for **threaded** (OpenMP) Q-Chem runs.
+- `qchem -nt N` tells Q-Chem to use **N OpenMP threads**.
+
+Submit the job (from the folder containing `H2O2.inp` and `sub.sh`):
+
+```
+sbatch sub.sh H2O2.inp
+```
+
+Useful Slurm command:
+
+```
+squeue -u $USER           # Check job status
+```
+
+
+
+## 5. View Q-Chem Results with IQmol
+
