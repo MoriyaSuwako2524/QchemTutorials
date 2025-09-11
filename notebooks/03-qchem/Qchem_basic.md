@@ -44,11 +44,7 @@ If you plan to develop new features in Q-Chem (e.g., new functions, special requ
 
 Select a suitable directory for Q-Chem that has enough space (at least 10 GB) and will not be automatically cleaned up by system administrators.
 
-On the Pete supercomputer, a recommended location is:
-
-```bash
-/scratch/$user/software/
-```
+On the Pete supercomputer, a recommended location is`/scratch/$user/software/` .
 
 Replace `$user` with your own username. If the `software` directory does not exist, create it with:
 
@@ -89,9 +85,6 @@ The download may take some time. After it finishes, you should see a new folder 
 #SBATCH --time=1-00:00:00
 #SBATCH --job-name=comp
 
-
-mkdir logs
-
 module purge
 module load cmake3/3.24.3
 module load impi/2021.2.0
@@ -101,11 +94,8 @@ export QC=/scratch/$USER/software/qchem
 source $QC/bin/qchem.setup.sh
 export QCSCRATCH=/scratch/$USER
 
-
-cd $QC
 ./configure intel release
 
-make -j 16 qcprog.exe > mall.log
 ```
 
 Source the script to start configuration:
@@ -126,10 +116,14 @@ This indicates that the **build directory** has been created successfully.
 
 If you encounter errors, check the output and carefully read the error messages. In most cases, problems can be resolved by installing the required module, searching for the error message on Google or by asking ChatGPT for help.
 
+There're some collection for [Known Issues](./Q-Chem Compile Issues.md).
+
 Copy the compiler.sh file into build directory
 
 ```bash
 cp ./compiler.sh ./build/compiler.sh
+cd build
+mkdir logs
 ```
 
 **Edit the copied script** by adding one more line at the end:

@@ -6,7 +6,7 @@ I would like  to write some tutorials but I'm too lazy so it's delayed until now
 
 1. Computational Chemistry Softwares
 
-   1. Q-Chem basic
+   1. [Q-Chem Basic](./Qchem_basic.md)
    2. IQmol
    3. Multiwfn
    4. VMD
@@ -15,8 +15,8 @@ I would like  to write some tutorials but I'm too lazy so it's delayed until now
 
 2. Computational Chemistry Jobs
 
-   1. Basic Quantum Mechanic Theories
-   2. Basis Sets
+   1. [Quantum Chemistry Theory Basic (quick review version)](./Quantum Chemistry Theory Basic.md)
+   2. [Basis Set](./Basis Set.md)
    3. Single Point
    4. Potential Energy Surface I. Concept
    5. Geometry Optimization
@@ -33,7 +33,10 @@ I would like  to write some tutorials but I'm too lazy so it's delayed until now
 
 3. Quantum Chemistry Basic
 
-   1. This part should follow Szabo?
+   1. Quantum Mechanic
+   1. Hartree-Fock
+   1. CI methods
+   1. DFT
 
 4. Object-Oriented Programming(One should already have python code experience)
 

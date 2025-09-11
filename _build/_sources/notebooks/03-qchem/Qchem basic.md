@@ -21,7 +21,7 @@ Q-Chem supports OpenMP threading, MPI for distributed-memory runs. Usually one s
 
 ![parallel1](D:\calculate\github\QchemTutorials\notebooks\03-qchem\pngs\parallel1.png)
 
-Figure 1. Parallel benchmarking of Q-Chem on the test molecule. Three tasks(single-point (SP), force, and vibrational frequency) were run with 2, 4, 8, 16, and 32 CPU cores on PETE. Speedup is computed from wall time relative to the 2-core run. According to the Figure, adding more cores won't give proportional speeds.
+Figure 1. Parallel benchmarking of Q-Chem on the test molecule. Three tasks(single-point (SP), force, and vibrational frequency) were run with 2, 4, 8, 16, and 32 CPU cores on PETE. Speedup is computed from wall time relative to the 2-core run. According to the Figure, adding more cores won't give same amount of speedup. Because the x axis is log while y axis isn't.
 
 ## 2. Install & Compile Q-chem
 
